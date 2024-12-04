@@ -115,9 +115,8 @@ export const getCurrentUser = async () => {
     if (user.total <= 0) return null;
 
     return parseStringify(user.documents[0]);
-  } catch (error) {
-    console.log(error);
-    handleError(error, "Unable to get current user details.")
+  } catch {
+    return null;
   }
 };
 
