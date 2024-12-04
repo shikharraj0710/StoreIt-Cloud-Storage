@@ -7,7 +7,6 @@ import { ID, Models, Query } from "node-appwrite";
 import { constructFileUrl, getFileType, parseStringify } from "../utils";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "./user.actions";
-import { redirect } from "next/navigation";
 
 export const uploadFile = async ({
   file,
@@ -191,9 +190,7 @@ export async function getTotalSpaceUsed() {
   try {
     const { databases } = await createSessionClient();
     const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return redirect("/sign-in");
-    }
+    if (!currentUser) throw new Error("User is not authenticated.");
 
     const files = await databases.listDocuments(
       appwriteConfig.databaseId,
