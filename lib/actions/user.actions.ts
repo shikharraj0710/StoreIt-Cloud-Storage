@@ -44,29 +44,35 @@ export const createAccount = async ({
   fullName: string;
   email: string;
 }) => {
-  const existingUser = await getUserByEmail(email);
+  try {
+    const existingUser = await getUserByEmail(email);
 
-  const accountId = await SendEmailOTP({ email });
+    if (!existingUser) {
+      const accountId = await SendEmailOTP({ email });
 
-  if (!accountId) throw new Error("Failed to send an OTP.");
+      if (!accountId) throw new Error("Failed to send an OTP.");
 
-  if (!existingUser) {
-    const { databases } = await createAdminClient();
+      const { databases } = await createAdminClient();
 
-    await databases.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.usersCollectionId,
-      ID.unique(),
-      {
-        fullName,
-        email,
-        avatar: avatarPlaceholderUrl,
-        accountId,
-      }
-    );
+      await databases.createDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.usersCollectionId,
+        ID.unique(),
+        {
+          fullName,
+          email,
+          avatar: avatarPlaceholderUrl,
+          accountId,
+        }
+      );
+      return parseStringify({ accountId });
+    }
+
+    return parseStringify({ accountId: null, error: "Email already registered." });
+
+  } catch (error) {
+    handleError(error, "Failed to sign in user");
   }
-
-  return parseStringify({ accountId });
 };
 
 export const verifySecret = async ({
@@ -110,7 +116,8 @@ export const getCurrentUser = async () => {
 
     return parseStringify(user.documents[0]);
   } catch (error) {
-   console.log(error) 
+    console.log(error);
+    handleError(error, "Unable to get current user details.")
   }
 };
 
@@ -136,7 +143,7 @@ export const signInUser = async ({ email }: { email: string }) => {
       return parseStringify({ accountId: existingUser.accountId });
     }
 
-    return parseStringify({ accountId: null, error: "User not found" });
+    return parseStringify({ accountId: null, error: "Email not registered." });
   } catch (error) {
     handleError(error, "Failed to sign in user");
   }

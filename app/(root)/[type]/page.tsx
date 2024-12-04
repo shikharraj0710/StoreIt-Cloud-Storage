@@ -4,9 +4,16 @@ import { getFiles } from "@/lib/actions/file.actions";
 import { Models } from "node-appwrite";
 import Card from "@/components/Card";
 import { getFileTypesParams } from "@/lib/utils";
+import { redirect } from "next/navigation";
 
 const Page = async ({ searchParams, params }: SearchParamProps) => {
-  const type = ((await params)?.type as string) || "";
+  const type = ((await params)?.type as FileType) || "";
+
+  const validFileTypes = ["documents", "images", "media", "others"];
+  if (!validFileTypes.includes(type)) {
+   return redirect("/")
+  }
+
   const searchText = ((await searchParams)?.query as string) || "";
   const sort = ((await searchParams)?.sort as string) || "";
 
